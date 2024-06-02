@@ -2,21 +2,32 @@ exports.getPosts = (req, res, next) => {
   res.status(200).json({
     posts: [
       {
+        _id: "1",
         title: "Cracking the coding interview",
-        description: "you can crack any interview using this book",
+        content: "you can crack any interview using this book",
+        image: "images/etoo.jpg",
+        creator: {
+          name: "Etoo",
+        },
+        createdAt: new Date(),
       },
     ],
   });
 };
 exports.createPost = (req, res, next) => {
   const title = req.body.title;
-  const description = req.body.description;
+  const content = req.body.content;
   res.status(201).json({
     message: "post created succssfully",
     post: {
-      id: new Date().toISOString(),
+      _id: new Date().toISOString(),
       title: title,
-      description: description,
+      content: content,
+      image: "images/etoo.jpg",
+      creator: {
+        name: "Etoo",
+      },
+      createdAt: new Date(),
     },
   });
 };
