@@ -1,11 +1,13 @@
 const express = require("express");
 const { body } = require("express-validator");
+const isAuth = require("../middleware/is-auth");
 const feedController = require("../controllers/feed");
 const router = express.Router();
 
-router.get("/posts", feedController.getPosts);
+router.get("/posts", isAuth, feedController.getPosts);
 router.post(
   "/createPost",
+  isAuth,
   [
     body("title", "Title must be atlease 5 char long")
       .trim()
@@ -16,9 +18,10 @@ router.post(
   ],
   feedController.createPost
 );
-router.get("/posts/:postId", feedController.getSinglePost);
+router.get("/posts/:postId", isAuth, feedController.getSinglePost);
 router.put(
   "/post/:postId",
+  isAuth,
   [
     body("title", "Title must be atlease 5 char long")
       .trim()
@@ -29,5 +32,5 @@ router.put(
   ],
   feedController.updatePost
 );
-router.delete("/post/:postId", feedController.deletePost);
+router.delete("/post/:postId", isAuth, feedController.deletePost);
 module.exports = router;
