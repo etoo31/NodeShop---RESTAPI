@@ -24,7 +24,7 @@ exports.createPost = (req, res, next) => {
     error.statusCode = 422;
     throw error;
   }
-  const imageUrl = req.file.path;
+  const imageUrl = req.file.path.replace("\\", "/");
   const post = new Post({
     title: title,
     content: content,
@@ -36,7 +36,7 @@ exports.createPost = (req, res, next) => {
   post
     .save()
     .then((result) => {
-      console.log(result);
+      console.log("Post Created : ", result);
       res.status(201).json({
         message: "post created succssfully",
         post: post,
@@ -48,4 +48,20 @@ exports.createPost = (req, res, next) => {
       }
       next(err);
     });
+};
+exports.getSinglePost = (req, res, next) => {
+  const postId = req.params.postId;
+
+  Post.findById(postId)
+    .then((post) => {
+      if (!post) {
+        const error = new Error("There is no post with this id");
+        error.statusCode = 404;
+        throw error;
+      }
+      res.status(200).json({
+        post: post,
+      });
+    })
+    .catch((err) => next(err));
 };

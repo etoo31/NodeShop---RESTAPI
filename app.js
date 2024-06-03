@@ -13,7 +13,6 @@ const fileStorage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     let currentDate = new Date();
-    console.log(currentDate);
     // Get the year, month, and day
     let year = currentDate.getFullYear();
     let month = (currentDate.getMonth() + 1).toString().padStart(2, "0"); // Months are zero-based
@@ -26,7 +25,6 @@ const fileStorage = multer.diskStorage({
 
     // Concatenate to form the date and time string without special characters
     let dateTimeString = year + month + day + hours + minutes + seconds;
-    console.log(dateTimeString);
     cb(null, dateTimeString + file.originalname);
   },
 });
