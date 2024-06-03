@@ -2,20 +2,11 @@ const { validationResult } = require("express-validator");
 const Post = require("../models/post");
 
 exports.getPosts = (req, res, next) => {
-  res.status(200).json({
-    posts: [
-      {
-        _id: "1",
-        title: "Cracking the coding interview",
-        content: "you can crack any interview using this book",
-        image: "images/etoo.jpg",
-        creator: {
-          name: "Etoo",
-        },
-        createdAt: new Date(),
-      },
-    ],
-  });
+  Post.find()
+    .then((posts) => {
+      res.status(200).json({ posts: posts });
+    })
+    .catch((err) => next(err));
 };
 exports.createPost = (req, res, next) => {
   const title = req.body.title;
@@ -28,10 +19,16 @@ exports.createPost = (req, res, next) => {
     error.statusCode = 422;
     throw error;
   }
+  if (!req.file) {
+    const error = new Error("File is missing");
+    error.statusCode = 422;
+    throw error;
+  }
+  const imageUrl = req.file.path;
   const post = new Post({
     title: title,
     content: content,
-    imageUrl: "images/etoo.jpg",
+    imageUrl: imageUrl,
     creator: {
       name: "Etoo",
     },
