@@ -105,7 +105,26 @@ exports.updatePost = (req, res, next) => {
       return post.save();
     })
     .then((post) => {
-      res.status(200).json({ message: "Post updated susscuffuly", post: post });
+      res.status(200).json({ message: "Post updated succssfully", post: post });
+    })
+    .catch((err) => next(err));
+};
+exports.deletePost = (req, res, next) => {
+  const postId = req.params.postId;
+
+  Post.findById(postId)
+    .then((post) => {
+      if (!post) {
+        const error = new Error("There is no post with this id");
+        error.statusCode = 404;
+        throw error;
+      }
+      deleteImage(post.imageUrl);
+      return Post.findOneAndDelete(postId);
+    })
+    .then((result) => {
+      console.log(result);
+      res.status(200).json({ message: "post deleted succssfully" });
     })
     .catch((err) => next(err));
 };
