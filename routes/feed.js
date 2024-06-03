@@ -9,7 +9,7 @@ router.post(
   [
     body("title", "Title must be atlease 5 char long")
       .trim()
-      .isLength({ min: 5 }),
+      .isLength({ min: 7 }),
     body("content", "Content must be atleast 5 char long")
       .trim()
       .isLength({ min: 5 }),
