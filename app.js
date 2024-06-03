@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 require("dotenv").config();
 const feedRouter = require("./routes/feed");
+const authRouter = require("./routes/auth");
 const app = express();
 
 const fileStorage = multer.diskStorage({
@@ -53,6 +54,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/feed", feedRouter);
+app.use("/auth", authRouter);
 app.use((error, req, res, next) => {
   console.log(error);
   const status = error.statusCode || 500;
