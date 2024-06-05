@@ -165,6 +165,36 @@ exports.deletePost = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+exports.getStatus = (req, res, next) => {
+  User.findById(req.userId)
+    .then((user) => {
+      if (!user) {
+        throw new Error("User is not found");
+      }
+      res.status(200).json({
+        status: user.status,
+      });
+    })
+    .catch((err) => next(err));
+};
+exports.updateStatus = (req, res, next) => {
+  const status = req.body.status;
+  User.findById(req.userId)
+    .then((user) => {
+      if (!user) {
+        throw new Error("User is not found");
+      }
+      user.status = status;
+      return user.save();
+    })
+    .then((result) => {
+      res.status(200).json({
+        message: "User status updated succssfully",
+        status: status,
+      });
+    })
+    .catch((err) => next(err));
+};
 const deleteImage = (imagePath) => {
   const fullPath = path.join(__dirname, "..", imagePath);
   fs.unlink(fullPath, (err) => {
