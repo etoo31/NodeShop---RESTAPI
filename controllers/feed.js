@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { validationResult } = require("express-validator");
 const Post = require("../models/post");
+const User = require("../models/user");
 
 exports.getPosts = (req, res, next) => {
   const page = req.query.page || 1;
@@ -12,10 +13,12 @@ exports.getPosts = (req, res, next) => {
     .then((count) => {
       totalItems = count;
       return Post.find()
+        .populate("creator")
         .skip((page - 1) * perPage)
         .limit(perPage);
     })
     .then((posts) => {
+      //console.log(posts[0].creator);
       res.status(200).json({ posts: posts, totalItems: totalItems });
     })
     .catch((err) => next(err));
@@ -41,17 +44,24 @@ exports.createPost = (req, res, next) => {
     title: title,
     content: content,
     imageUrl: imageUrl,
-    creator: {
-      name: "Etoo",
-    },
+    creator: req.userId,
   });
+  let postCreated;
   post
     .save()
     .then((result) => {
+      postCreated = result;
       console.log("Post Created : ", result);
+      return User.findById(req.userId);
+    })
+    .then((user) => {
+      user.posts.push(post);
+      return user.save();
+    })
+    .then((result) => {
       res.status(201).json({
         message: "post created succssfully",
-        post: post,
+        post: { ...post._doc, creator: { _id: result._id, name: result.name } },
       });
     })
     .catch((err) => {
@@ -101,6 +111,11 @@ exports.updatePost = (req, res, next) => {
   }
   Post.findById(postId)
     .then((post) => {
+      if (req.userId !== post.creator.toString()) {
+        const error = new Error("UnAuthorized");
+        error.statusCode = 403;
+        throw error;
+      }
       if (!post) {
         const error = new Error("There is no post with this id");
         error.statusCode = 404;
@@ -129,11 +144,22 @@ exports.deletePost = (req, res, next) => {
         error.statusCode = 404;
         throw error;
       }
+      if (post.creator.toString() !== req.userId) {
+        const error = new Error("UnAuthorized");
+        error.statusCode = 403;
+        throw error;
+      }
       deleteImage(post.imageUrl);
       return Post.findOneAndDelete(postId);
     })
     .then((result) => {
-      console.log(result);
+      return User.findById(req.userId);
+    })
+    .then((user) => {
+      user.posts.pull(postId);
+      return user.save();
+    })
+    .then((result) => {
       res.status(200).json({ message: "post deleted succssfully" });
     })
     .catch((err) => next(err));
