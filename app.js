@@ -68,6 +68,15 @@ mongoose
   .connect(process.env.DATABASE_URI)
   .then((result) => {
     console.log("Connected to the Database");
-    app.listen(process.env.PORT);
+    const server = app.listen(process.env.PORT);
+    const io = require("./socket").init(server, {
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+      },
+    });
+    io.on("connection", (socket) => {
+      console.log("New Connection");
+    });
   })
   .catch((err) => console.log(err));

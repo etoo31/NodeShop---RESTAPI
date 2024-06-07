@@ -3,6 +3,7 @@ const path = require("path");
 const { validationResult } = require("express-validator");
 const Post = require("../models/post");
 const User = require("../models/user");
+const io = require("../socket");
 
 exports.getPosts = async (req, res, next) => {
   const page = req.query.page || 1;
@@ -48,9 +49,13 @@ exports.createPost = async (req, res, next) => {
     const user = await User.findById(req.userId);
     user.posts.push(post);
     const result = user.save();
+    io.getio().emit("posts", {
+      action: "create",
+      post: { ...post._doc, creator: { _id: user._id, name: user.name } },
+    });
     res.status(201).json({
       message: "post created succssfully",
-      post: { ...post._doc, creator: { _id: result._id, name: result.name } },
+      post: { ...post._doc, creator: { _id: user._id, name: user.name } },
     });
   } catch (err) {
     next(err);
@@ -96,8 +101,8 @@ exports.updatePost = async (req, res, next) => {
     throw error;
   }
   try {
-    const post = await Post.findById(postId);
-    if (req.userId !== post.creator.toString()) {
+    const post = await Post.findById(postId).populate("creator");
+    if (req.userId !== post.creator._id.toString()) {
       const error = new Error("UnAuthorized");
       error.statusCode = 403;
       throw error;
@@ -115,6 +120,7 @@ exports.updatePost = async (req, res, next) => {
     post.imageUrl = imageUrl;
 
     const result = await post.save();
+    io.getio().emit("posts", { action: "update", post: result });
     res.status(200).json({ message: "Post updated succssfully", post: result });
   } catch (err) {
     next(err);
@@ -140,6 +146,7 @@ exports.deletePost = async (req, res, next) => {
     const user = await User.findById(req.userId);
     user.posts.pull(postId);
     const userUpdateResult = await user.save();
+    io.getio().emit("posts", { action: "delete", post: post });
     res.status(200).json({ message: "post deleted succssfully" });
   } catch (err) {
     next(err);
@@ -167,12 +174,10 @@ exports.updateStatus = async (req, res, next) => {
     if (!user) {
       throw new Error("User is not found");
     }
-    console.log(user.status);
-    console.log(status);
+
     user.status = status;
-    console.log(user.status);
+
     const result = await user.save();
-    console.log(result.status);
 
     res.status(200).json({
       message: "User status updated succssfully",

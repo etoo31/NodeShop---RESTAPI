@@ -54,11 +54,11 @@ exports.login = async (req, res, next) => {
     }
 
     const email = req.body.email;
-    console.log(email);
+    // console.log(email);
     const password = req.body.password;
 
     const user = await User.findOne({ email: email });
-    console.log(user);
+    // console.log(user);
     if (!user) {
       const error = new Error("Email dosen't exists");
       error.statusCode = 401;
